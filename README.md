@@ -24,8 +24,7 @@ FileWriter 的构造函数包含logdir，这个logdir目录是相当重要的�
 
 ```python
 def variable_summaries(var):
-  """Attach a lot of summaries to a Tensor (for 
-  TensorBoard visualization)."""
+  """ 为了TensorBoard可视化，给Tensor添加一些汇总"""
   with tf.name_scope('summaries'):
     mean = tf.reduce_mean(var)
     tf.summary.scalar('mean', mean)
@@ -37,16 +36,15 @@ def variable_summaries(var):
     tf.summary.histogram('histogram', var)
 
 def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.relu):
-  """Reusable code for making a simple neural net layer.
-
-  It does a matrix multiply, bias add, and then uses relu to nonlinearize.
-  It also sets up name scoping so that the resultant graph is easy to read,
-  and adds a number of summary ops.
+  """用于制作简单的神经网络层的可重复使用的代码。
+  它进行矩阵乘法，偏置加法，然后使用relu进行非线性化。
+  它还设置了名称范围，使得生成的图形易于阅读，
+  并增加了一些汇总操作。
   """
-  # Adding a name scope ensures logical grouping of the layers in the graph.
+  # 添加一个名称范围以确保图层的逻辑分组。
   with tf.name_scope(layer_name):
-    # This Variable will hold the state of the weights for the layer
-    with tf.name_scope('weights'):
+  # 这个变量将保存图层权重的状态
+  with tf.name_scope('weights'):
       weights = weight_variable([input_dim, output_dim])
       variable_summaries(weights)
     with tf.name_scope('biases'):
@@ -66,20 +64,20 @@ with tf.name_scope('dropout'):
   tf.summary.scalar('dropout_keep_probability', keep_prob)
   dropped = tf.nn.dropout(hidden1, keep_prob)
 
-# Do not apply softmax activation yet, see below.
+# 不要使用softmax激活，请参阅下文。
 y = nn_layer(dropped, 500, 10, 'layer2', act=tf.identity)
 
 with tf.name_scope('cross_entropy'):
-  # The raw formulation of cross-entropy,
+  #交叉熵的原始公式,
   #
   # tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(tf.softmax(y)),
   #                               reduction_indices=[1]))
   #
-  # can be numerically unstable.
+  # 可能在数值上不稳定。
   #
-  # So here we use tf.nn.softmax_cross_entropy_with_logits on the
-  # raw outputs of the nn_layer above, and then average across
-  # the batch.
+  # 所以我们用这个
+   tf.nn.softmax_cross_entropy_with_logits on the
+  # 上面nn_layer的原始输出，然后平均批次。
   diff = tf.nn.softmax_cross_entropy_with_logits(targets=y_, logits=y)
   with tf.name_scope('total'):
     cross_entropy = tf.reduce_mean(diff)
@@ -96,7 +94,8 @@ with tf.name_scope('accuracy'):
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 tf.summary.scalar('accuracy', accuracy)
 
-# Merge all the summaries and write them out to /tmp/mnist_logs (by default)
+#合并所有的摘要，并把它们写到/ tmp /
+mnist_logs (by default)
 merged = tf.summary.merge_all()
 train_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/train',
                                       sess.graph)
@@ -107,12 +106,12 @@ tf.global_variables_initializer().run()
 在我们的filewriters初始化后，我们将总结的filewriters作为我们训练和测试模型
 
 ```python
-# Train the model, and also write summaries.
-# Every 10th step, measure test-set accuracy, and write test summaries
-# All other steps, run train_step on training data, & add training summaries
+#训练模型，并撰写摘要。
+＃每10步，测量一次测试集的准确度，并写出测试总结
+＃所有其他步骤，在训练数据上运行train_step，并添加训练汇总
 
 def feed_dict(train):
-  """Make a TensorFlow feed_dict: maps data onto Tensor placeholders."""
+  """做一个TensorFlow feed_dict：将数据映射到张量占位符上。"""
   if train or FLAGS.fake_data:
     xs, ys = mnist.train.next_batch(100, fake_data=FLAGS.fake_data)
     k = FLAGS.dropout
@@ -122,11 +121,11 @@ def feed_dict(train):
   return {x: xs, y_: ys, keep_prob: k}
 
 for i in range(FLAGS.max_steps):
-  if i % 10 == 0:  # Record summaries and test-set accuracy
+  if i % 10 == 0:  # 记录汇总和测试集精度
     summary, acc = sess.run([merged, accuracy], feed_dict=feed_dict(False))
     test_writer.add_summary(summary, i)
     print('Accuracy at step %s: %s' % (i, acc))
-  else:  # Record train set summaries, and train
+  else:  # 记录训练得到的汇总并且训练
     summary, _ = sess.run([merged, train_step], feed_dict=feed_dict(True))
     train_writer.add_summary(summary, i)
 
